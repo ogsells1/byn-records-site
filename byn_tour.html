@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>BYN Records — Студия изнутри</title>
+<style>
+/* Fix for iframe: prevent fixed elements from bleeding outside on mobile */
+html, body { overflow: hidden; position: relative; width: 100%; height: 100%; }
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { background:#060606; font-family:'Helvetica Neue',sans-serif; touch-action:none; }
+#canvas { display:block; width:100vw; height:100vh; }
+
+/* GRAIN */
+body::before {
+  content:''; position:fixed; inset:0; z-index:9000; pointer-events:none; opacity:.03;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:180px;
+}
+
+/* CROSSHAIR (desktop only) */
+#crosshair {
+  position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:20px; height:20px; pointer-events:none; z-index:100; display:none;
+}
+#crosshair::before,#crosshair::after { content:''; position:absolute; background:rgba(255,61,0,.85); }
+#crosshair::before { width:2px; height:100%; left:50%; transform:translateX(-50%); }
+#crosshair::after  { width:100%; height:2px; top:50%; transform:translateY(-50%); }
+
+/* LOADING */
+#loading {
+  position:fixed; inset:0; background:#060606;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:300;
+}
+#loading-title { font-size:13px; font-weight:700; letter-spacing:4px; text-transform:uppercase; color:#FF3D00; margin-bottom:24px; }
+#loading-bar-wrap { width:240px; height:2px; background:rgba(255,255,255,.08); }
+#loading-bar { height:100%; background:#FF3D00; width:0%; transition:width .3s; box-shadow:0 0 12px rgba(255,61,0,.6); }
+#loading-pct { margin-top:14px; font-size:10px; letter-spacing:2px; color:rgba(235,235,235,.25); }
+
+/* START SCREEN */
+#start {
+  position:fixed; inset:0; background:#060606;
+  display:none; flex-direction:column; align-items:center; justify-content:center; z-index:200;
+}
+#start-logo {
+  font-size:clamp(48px,10vw,120px); font-weight:900; letter-spacing:-3px;
+  text-transform:uppercase; color:#EBEBEB; line-height:.88; margin-bottom:16px; text-align:center;
+}
+#start-logo span { -webkit-text-stroke:2px #EBEBEB; color:transparent; display:block; }
+#start-sub { font-size:11px; letter-spacing:4px; text-transform:uppercase; color:#FF3D00; margin-bottom:56px; }
+#start-btn {
+  background:#FF3D00; color:#EBEBEB; font-size:11px; font-weight:700;
+  letter-spacing:3px; text-transform:uppercase; padding:18px 48px;
+  border:none; cursor:pointer; box-shadow:0 0 40px rgba(255,61,0,.4); transition:background .2s;
+}
+#start-btn:hover,#start-btn:active { background:#ff5a20; }
+#start-hint { margin-top:28px; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:rgba(235,235,235,.2); text-align:center; padding:0 20px; }
+
+/* RPG BOX */
+#rpg-box {
+  position:fixed; bottom:0; left:0; right:0;
+  background:rgba(6,6,6,.93); border-top:2px solid #FF3D00;
+  padding:20px 28px 16px; z-index:400; display:none;
+  box-shadow:0 -8px 40px rgba(255,61,0,.15);
+}
+#rpg-box.visible { display:block; }
+#rpg-name { font-size:9px; font-weight:700; letter-spacing:4px; text-transform:uppercase; color:#FF3D00; margin-bottom:8px; }
+#rpg-text { font-size:14px; font-weight:300; line-height:1.7; color:#EBEBEB; min-height:48px; font-family:'Courier New',monospace; }
+#rpg-cursor { display:inline-block; width:8px; height:14px; background:#FF3D00; margin-left:2px; animation:blink .7s step-end infinite; vertical-align:middle; }
+@keyframes blink { 50%{opacity:0} }
+#rpg-skip { margin-top:10px; font-size:8px; letter-spacing:3px; text-transform:uppercase; color:rgba(235,235,235,.2); }
+
+/* PROMPT */
+#prompt {
+  position:fixed; bottom:140px; left:50%; transform:translateX(-50%);
+  background:rgba(6,6,6,.92); border:1px solid #FF3D00; color:#EBEBEB;
+  font-size:11px; font-weight:700; letter-spacing:3px; text-transform:uppercase;
+  padding:14px 32px; pointer-events:none; z-index:100;
+  opacity:0; transition:opacity .3s; white-space:nowrap;
+  box-shadow:0 0 24px rgba(255,61,0,.3);
+}
+#prompt.visible { opacity:1; }
+
+/* CONTROLS HINT (desktop) */
+#controls {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+  font-size:9px; letter-spacing:2px; text-transform:uppercase;
+  color:rgba(235,235,235,.18); pointer-events:none; z-index:100; display:none;
+}
+
+/* ── MOBILE CONTROLS ── */
+/* Fixed look joystick — bottom left corner */
+#joystick-zone {
+  position:fixed; left:16px; bottom:16px;
+  width:130px; height:130px;
+  z-index:200; display:none; align-items:center; justify-content:center;
+}
+#joystick-base {
+  width:120px; height:120px; border-radius:50%;
+  background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.18);
+  position:relative; flex-shrink:0;
+}
+#joystick-knob {
+  width:48px; height:48px; border-radius:50%;
+  background:rgba(255,61,0,.75); border:2px solid #FF3D00;
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  pointer-events:none;
+}
+
+/* Interact button — right side */
+#btn-interact {
+  position:fixed; right:28px; bottom:140px;
+  width:70px; height:70px; border-radius:50%;
+  background:#FF3D00; border:none; color:#EBEBEB;
+  font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+  z-index:200; display:none; align-items:center; justify-content:center;
+  box-shadow:0 0 28px rgba(255,61,0,.45); cursor:pointer;
+  opacity:0; transition:opacity .3s; pointer-events:none;
+  flex-direction:column; gap:2px; text-align:center; line-height:1.2;
+}
+#btn-interact.show { display:flex; }
+#btn-interact.active { opacity:1; pointer-events:auto; }
+
+/* THANK YOU */
+#thankyou {
+  position:fixed; inset:0; z-index:500;
+  background:rgba(6,6,6,.93); display:none;
+  align-items:center; justify-content:center; flex-direction:column;
+  backdrop-filter:blur(6px);
+}
+#thankyou.visible { display:flex; }
+#ty-box { border:1px solid #FF3D00; padding:48px 40px; text-align:center; box-shadow:0 0 60px rgba(255,61,0,.25); max-width:420px; margin:20px; }
+#ty-eyebrow { font-size:9px; letter-spacing:4px; text-transform:uppercase; color:#FF3D00; margin-bottom:16px; }
+#ty-title { font-size:clamp(20px,5vw,32px); font-weight:900; text-transform:uppercase; letter-spacing:-1px; color:#EBEBEB; line-height:1.1; margin-bottom:32px; }
+#ty-btn {
+  background:#FF3D00; color:#EBEBEB; font-size:10px; font-weight:700;
+  letter-spacing:3px; text-transform:uppercase; padding:16px 40px;
+  border:none; cursor:pointer; box-shadow:0 0 28px rgba(255,61,0,.35); transition:background .2s;
+}
+#ty-btn:hover,#ty-btn:active { background:#ff5a20; }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div id="loading-title">BYN Records</div>
+  <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
+  <div id="loading-pct">Загружаем студию...</div>
+</div>
+
+<div id="start">
+  <div id="start-logo">BYN<span>RECORDS</span></div>
+  <div id="start-sub">Студия звукозаписи · Минск</div>
+  <button id="start-btn">Войти в студию →</button>
+  <div id="start-hint" id="start-hint-desktop">WASD — движение &nbsp;|&nbsp; мышь — взгляд &nbsp;|&nbsp; E — взаимодействие</div>
+</div>
+
+<!-- Mobile back button -->
+<div id="mobile-back" style="display:none;position:fixed;top:16px;left:16px;z-index:9999;">
+  <button id="back-btn" style="
+    background:rgba(6,6,6,.85);border:1px solid rgba(255,61,0,.5);
+    color:#FF3D00;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+    padding:10px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  ">← Назад</button>
+</div>
+
+<canvas id="canvas"></canvas>
+<div id="crosshair"></div>
+<div id="prompt">[ E ] Продолжить</div>
+<div id="controls">WASD · мышь · E — взаимодействие · ESC — пауза</div>
+
+<!-- Resume hint shown after ESC -->
+<div id="resume-hint" style="
+  display:none;position:fixed;inset:0;z-index:150;
+  align-items:center;justify-content:center;
+  background:rgba(6,6,6,.5);cursor:pointer;
+" onclick="document.getElementById('canvas').requestPointerLock()">
+  <div style="border:1px solid #FF3D00;padding:24px 48px;text-align:center;box-shadow:0 0 40px rgba(255,61,0,.3);">
+    <div style="font-size:9px;letter-spacing:4px;text-transform:uppercase;color:#FF3D00;margin-bottom:12px;">ПАУЗА</div>
+    <div style="font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#EBEBEB;">Нажми чтобы продолжить</div>
+  </div>
+</div>
+
+<!-- RPG -->
+<div id="rpg-box">
+  <div id="rpg-name">BYN RECORDS</div>
+  <div id="rpg-text"></div>
+  <div id="rpg-skip">нажми чтобы пропустить</div>
+</div>
+
+<!-- MOBILE TUTORIAL OVERLAY -->
+<div id="mob-tutorial" style="display:none;position:fixed;inset:0;z-index:300;pointer-events:none;">
+
+  <!-- Top half: forward -->
+  <div style="
+    position:absolute;top:0;left:0;right:0;height:50%;
+    border:2px dashed rgba(255,61,0,.35);
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(255,61,0,.06);
+  ">
+    <div style="text-align:center;">
+      <div style="font-size:28px;animation:tut-up .9s ease-in-out infinite alternate;">↑</div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#FF3D00;margin-top:6px;">ВПЕРЁД</div>
+    </div>
+  </div>
+
+  <!-- Bottom half: backward (excluding joystick zone) -->
+  <div style="
+    position:absolute;bottom:0;left:0;right:0;height:50%;
+    border:2px dashed rgba(255,255,255,.15);
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(255,255,255,.03);
+  ">
+    <div style="text-align:center;margin-bottom:60px;">
+      <div style="font-size:28px;animation:tut-down .9s ease-in-out infinite alternate;">↓</div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(235,235,235,.5);margin-top:6px;">НАЗАД</div>
+    </div>
+  </div>
+
+  <!-- Joystick label -->
+  <div style="
+    position:absolute;left:16px;bottom:160px;
+    text-align:center;width:130px;
+  ">
+    <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#FF3D00;">← → ПОВОРОТ</div>
+  </div>
+
+  <!-- Double tap label -->
+  <div style="
+    position:absolute;right:24px;bottom:200px;
+    text-align:center;
+  ">
+    <div style="font-size:22px;">👆👆</div>
+    <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(235,235,235,.5);margin-top:4px;">ПРЫЖОК</div>
+  </div>
+
+  <!-- Dismiss hint -->
+  <div style="
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    margin-top:20px;
+    font-size:9px;letter-spacing:2px;text-transform:uppercase;
+    color:rgba(235,235,235,.25);text-align:center;
+    animation:tut-fade 1.5s ease-in-out infinite alternate;
+  ">нажми чтобы скрыть</div>
+
+</div>
+
+<style>
+@keyframes tut-up   { from{transform:translateY(0)} to{transform:translateY(-8px)} }
+@keyframes tut-down { from{transform:translateY(0)} to{transform:translateY(8px)} }
+@keyframes tut-fade { from{opacity:.2} to{opacity:.5} }
+</style>
+<div id="joystick-zone">
+  <div id="joystick-base"><div id="joystick-knob"></div></div>
+</div>
+
+<!-- MOBILE INTERACT BUTTON -->
+<button id="btn-interact">Продол<br>жить</button>
+
+<!-- THANK YOU -->
+<div id="thankyou">
+  <div id="ty-box">
+    <div id="ty-eyebrow">BYN Records</div>
+    <div id="ty-title">Спасибо,<br>отлично записались!</div>
+    <button id="ty-btn">Перейти в Instagram →</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ─────────────────────────────────────────────────────────
+// DETECT MOBILE
+// ─────────────────────────────────────────────────────────
+const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth < 768;
+
+// ── GLB FILE: mobile gets smaller version ─────────────────
+const GLB_FILE = IS_MOBILE ? 'my_scene_mobile.glb' : 'my_scene.glb';
+const SPAWN_X   = -2.18;
+const SPAWN_Z   =  1.50;
+const SPAWN_YAW =  3.0;
+
+// ─────────────────────────────────────────────────────────
+// CONSTANTS
+// ─────────────────────────────────────────────────────────
+const FLOOR_Y       = -1.42;
+const PLAYER_HEIGHT = 1.60;
+const PLAYER_RADIUS = 0.30;
+const MOVE_SPEED    = IS_MOBILE ? 2.5 : 3.0;
+const ACCEL         = 14.0;
+const DECEL         = 18.0;
+const BOB_FREQ      = 2.4;
+const BOB_Y         = 0.034;
+const BOB_X         = 0.018;
+const INTERACT_DIST = IS_MOBILE ? 2.2 : 1.8;
+const INSTAGRAM     = 'https://instagram.com/byn.records';
+const BOUNDS        = { minX:-2.9, maxX:3.1, minZ:-4.9, maxZ:4.9 };
+const JUMP_FORCE    = 4.5;
+const GRAVITY       = 14.0;
+
+// ─────────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────────
+let renderer, scene, camera, clock;
+let yawObj, pitchObj;
+let colliders = [];
+let isLocked  = false;   // desktop pointer lock
+let isActive  = false;   // mobile: finger on screen
+let nearPC    = false;
+
+const keys  = {};
+const vel2  = new THREE.Vector2();
+const euler = new THREE.Euler(0,0,0,'YXZ');
+let bobT = 0, bobLerp = 0;
+let jumpVel = 0;       // vertical velocity for jump
+let isGrounded = true;
+
+// Computer marker position
+const pcPos = new THREE.Vector3(-0.6, 0, -0.8);
+
+// Raycasters for wall collision
+const RC_DIRS = [
+  new THREE.Vector3( 1,0, 0), new THREE.Vector3(-1,0, 0),
+  new THREE.Vector3( 0,0, 1), new THREE.Vector3( 0,0,-1),
+];
+const rcs = RC_DIRS.map(() => new THREE.Raycaster());
+
+// ─────────────────────────────────────────────────────────
+// MOBILE TOUCH STATE
+// ─────────────────────────────────────────────────────────
+const joy = { active:false, id:null, startX:0, startY:0, dx:0, dy:0 };
+const look= { active:false, id:null, lastX:0, lastY:0 };
+
+// ─────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────
+function init() {
+  clock = new THREE.Clock();
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x060606);
+  scene.fog = new THREE.Fog(0x060606, 7, 15);
+
+  yawObj = new THREE.Object3D();
+  yawObj.position.set(SPAWN_X, FLOOR_Y + PLAYER_HEIGHT, SPAWN_Z);
+  euler.y = SPAWN_YAW;
+  yawObj.rotation.y = euler.y;
+  scene.add(yawObj);
+
+  pitchObj = new THREE.Object3D();
+  yawObj.add(pitchObj);
+
+  camera = new THREE.PerspectiveCamera(72, innerWidth/innerHeight, 0.05, 50);
+  pitchObj.add(camera);
+
+  renderer = new THREE.WebGLRenderer({ canvas:document.getElementById('canvas'), antialias:true });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  // Lights
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.85);
+  sun.position.set(2,5,3); sun.castShadow=true;
+  sun.shadow.mapSize.set(1024,1024); scene.add(sun);
+  const fill = new THREE.PointLight(0xFF3D00,1.5,8);
+  fill.position.set(0,2,0); scene.add(fill);
+  const rim = new THREE.PointLight(0xFF5500,.7,5);
+  rim.position.set(-1.5,.8,-2.5); scene.add(rim);
+
+  // Floor fallback
+  const floorM = new THREE.Mesh(
+    new THREE.PlaneGeometry(20,20),
+    new THREE.MeshLambertMaterial({color:0x0c0c0c})
+  );
+  floorM.rotation.x = -Math.PI/2;
+  floorM.position.y = FLOOR_Y;
+  scene.add(floorM);
+
+  setupUI();
+  setupEvents();
+  loadGLB();
+}
+
+// ─────────────────────────────────────────────────────────
+// UI SETUP
+// ─────────────────────────────────────────────────────────
+function setupUI() {
+  const hint = document.getElementById('start-hint');
+  if (IS_MOBILE) {
+    hint.textContent = 'Верх экрана — вперёд · Низ — назад · Джойстик — поворот · 2× тап — прыжок';
+    document.getElementById('mobile-back').style.display = 'block';
+    // Back button: use referrer or fallback to parent folder
+    const backBtn = document.getElementById('back-btn');
+    const _params = new URLSearchParams(window.location.search);
+    const returnUrl = _params.get('from') || document.referrer || '../';
+    backBtn.addEventListener('click', () => { window.location.href = returnUrl; });
+    backBtn.addEventListener('touchend', (e) => { e.preventDefault(); window.location.href = returnUrl; }, { passive: false });
+    document.getElementById('joystick-zone').style.display = 'flex';
+    document.getElementById('btn-interact').classList.add('show');
+    document.getElementById('prompt').style.bottom = '220px';
+  }
+
+  document.getElementById('start-btn').addEventListener('click', enter);
+  document.getElementById('start-btn').addEventListener('touchend', function(e) {
+    e.preventDefault();
+    enter();
+  }, { passive: false });
+
+  document.getElementById('ty-btn').addEventListener('click', () => {
+    window.open(INSTAGRAM, '_blank');
+    document.getElementById('thankyou').classList.remove('visible');
+    if (!IS_MOBILE) document.getElementById('canvas').requestPointerLock();
+    else isActive = true;
+  });
+
+  document.getElementById('btn-interact').addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (nearPC) showThankyou();
+  }, { passive:false });
+  document.getElementById('btn-interact').addEventListener('click', () => {
+    if (nearPC) showThankyou();
+  });
+
+  // RPG tap to skip on mobile
+  document.getElementById('rpg-box').addEventListener('touchstart', e => {
+    e.preventDefault(); skipRPG();
+  }, { passive:false });
+  document.getElementById('rpg-box').addEventListener('click', skipRPG);
+}
+
+// ─────────────────────────────────────────────────────────
+// EVENTS
+// ─────────────────────────────────────────────────────────
+function setupEvents() {
+  window.addEventListener('resize', onResize);
+
+  if (!IS_MOBILE) {
+    // Desktop
+    window.addEventListener('keydown', e => { keys[e.code]=true; handleKey(e); });
+    window.addEventListener('keyup',   e => { keys[e.code]=false; });
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('pointerlockchange', onPLC);
+  } else {
+    // Mobile touch
+    document.addEventListener('touchstart',  onTouchStart,  { passive:false });
+    document.addEventListener('touchmove',   onTouchMove,   { passive:false });
+    document.addEventListener('touchend',    onTouchEnd,    { passive:false });
+    document.addEventListener('touchcancel', onTouchEnd,    { passive:false });
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// MOBILE TOUCH HANDLERS
+// New scheme:
+//   Bottom-left joystick (fixed) → camera rotation
+//   Top half of screen tap/hold  → move forward
+//   Bottom half of screen tap/hold (outside joystick) → move backward
+//   Double-tap anywhere → jump
+// ─────────────────────────────────────────────────────────
+const JOY_MAX   = 48;
+const JOY_ZONE  = 160; // px radius around joystick centre where joystick grabs touch
+// Joystick centre (fixed bottom-left)
+const JOY_CX = 76;   // left + half width
+const JOY_CY_FN = () => innerHeight - 76; // bottom-left, computed at runtime
+
+// Mobile movement state (set by touch zones)
+let mob = { forward: false, backward: false };
+
+// Double-tap detection
+let lastTapTime = 0;
+
+function inJoyZone(cx, cy) {
+  const jcx = JOY_CX;
+  const jcy = JOY_CY_FN();
+  const dx = cx - jcx, dy = cy - jcy;
+  return Math.sqrt(dx*dx+dy*dy) < JOY_ZONE;
+}
+
+function onTouchStart(e) {
+  e.preventDefault();
+  if (!isActive) { isActive = true; startRPGOnce(); }
+
+  // Double-tap detection
+  const now = Date.now();
+  if (now - lastTapTime < 280) {
+    // Double tap → jump
+    if (isGrounded) { jumpVel = JUMP_FORCE; isGrounded = false; }
+  }
+  lastTapTime = now;
+
+  for (const t of e.changedTouches) {
+    const cx = t.clientX, cy = t.clientY;
+
+    if (inJoyZone(cx, cy) && !joy.active) {
+      // Joystick touch
+      joy.active = true; joy.id = t.identifier;
+      joy.startX = cx; joy.startY = cy;
+      joy.dx = 0; joy.dy = 0;
+    } else if (!look.active && !inJoyZone(cx, cy)) {
+      // Movement zone touch
+      look.active = true; look.id = t.identifier;
+      look.lastX = cx; look.lastY = cy;
+      // Top half = forward, bottom half = backward
+      if (cy < innerHeight * 0.5) { mob.forward  = true; mob.backward = false; }
+      else                         { mob.backward = true; mob.forward  = false; }
+    }
+  }
+}
+
+function onTouchMove(e) {
+  e.preventDefault();
+  for (const t of e.changedTouches) {
+    if (t.identifier === joy.id) {
+      const rawDx = t.clientX - joy.startX;
+      const rawDy = t.clientY - joy.startY;
+      const len   = Math.sqrt(rawDx*rawDx + rawDy*rawDy);
+      const cl    = Math.min(len, JOY_MAX);
+      joy.dx = len > 0 ? rawDx/len*cl : 0;
+      joy.dy = len > 0 ? rawDy/len*cl : 0;
+      // Update knob
+      const knob = document.getElementById('joystick-knob');
+      knob.style.transform = `translate(calc(-50% + ${joy.dx}px), calc(-50% + ${joy.dy}px))`;
+      // Joystick = camera rotation
+      const sens = 0.003;
+      euler.y -= joy.dx * sens * 0.08;
+      euler.x  = Math.max(-Math.PI/2.1, Math.min(Math.PI/2.1, euler.x - joy.dy * sens * 0.06));
+      yawObj.rotation.y   = euler.y;
+      pitchObj.rotation.x = euler.x;
+    }
+    // Movement touch: no drag handling needed, direction set on start
+  }
+}
+
+function onTouchEnd(e) {
+  e.preventDefault();
+  for (const t of e.changedTouches) {
+    if (t.identifier === joy.id) {
+      joy.active = false; joy.id = null; joy.dx = 0; joy.dy = 0;
+      document.getElementById('joystick-knob').style.transform = 'translate(-50%,-50%)';
+    }
+    if (t.identifier === look.id) {
+      look.active = false; look.id = null;
+      mob.forward = false; mob.backward = false;
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// DESKTOP EVENTS
+// ─────────────────────────────────────────────────────────
+function enter() {
+  document.getElementById('start').style.display='none';
+  if (!IS_MOBILE) {
+    document.getElementById('canvas').requestPointerLock();
+  } else {
+    isActive = true;
+    document.getElementById('crosshair').style.display='none';
+    document.getElementById('controls').style.display='none';
+    startRPGOnce();
+  }
+}
+
+let _gameStarted = false;
+function onPLC() {
+  isLocked = document.pointerLockElement===document.getElementById('canvas');
+  document.getElementById('crosshair').style.display = isLocked?'block':'none';
+  document.getElementById('controls').style.display  = isLocked?'block':'none';
+  if (isLocked) {
+    _gameStarted = true;
+    if (!rpgDone) setTimeout(startRPG, 600);
+  }
+  // After game started: ESC just releases pointer lock, click canvas to re-enter
+  // Never show start screen again once game has started
+  if (!isLocked && !_gameStarted) {
+    document.getElementById('start').style.display='flex';
+  }
+  // Show "click to resume" hint when paused mid-game
+  const resumeHint = document.getElementById('resume-hint');
+  if (resumeHint) resumeHint.style.display = (!isLocked && _gameStarted) ? 'flex' : 'none';
+}
+
+function onMouseMove(e) {
+  if (!isLocked) return;
+  const s = 0.0016;
+  euler.y -= e.movementX*s;
+  euler.x  = Math.max(-Math.PI/2.1, Math.min(Math.PI/2.1, euler.x - e.movementY*s));
+  yawObj.rotation.y   = euler.y;
+  pitchObj.rotation.x = euler.x;
+}
+
+function handleKey(e) {
+  if (e.code==='KeyE'   && nearPC)              showThankyou();
+  if (e.code==='Escape' && isLocked)            document.exitPointerLock();
+  if (e.code==='Space'  && rpgActive)           skipRPG();
+  if (e.code==='Space'  && !rpgActive && isGrounded) { jumpVel = JUMP_FORCE; isGrounded = false; }
+}
+
+// ─────────────────────────────────────────────────────────
+// GLB LOAD
+// ─────────────────────────────────────────────────────────
+function loadGLB() {
+  const s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js';
+  s.onload=()=>{
+    const loader=new THREE.GLTFLoader();
+    loader.load(GLB_FILE,
+      gltf=>{
+        const model=gltf.scene;
+        const box=new THREE.Box3().setFromObject(model);
+        const c=box.getCenter(new THREE.Vector3());
+        model.position.set(-c.x,-box.min.y+FLOOR_Y,-c.z);
+        model.traverse(child=>{
+          if(!child.isMesh)return;
+          child.castShadow=child.receiveShadow=true;
+          if(child.material?.map)child.material.map.encoding=THREE.sRGBEncoding;
+          colliders.push(child);
+        });
+        scene.add(model);
+        addMarker(); done();
+      },
+      xhr=>{ if(xhr.total)prog(xhr.loaded/xhr.total*93); },
+      err=>{ console.warn(err); fallbackScene(); addMarker(); done(); }
+    );
+  };
+  s.onerror=()=>{ fallbackScene(); addMarker(); done(); };
+  document.head.appendChild(s);
+  let p=0;
+  const iv=setInterval(()=>{ p+=Math.random()*6; if(p>88){clearInterval(iv);return;} prog(p); },220);
+}
+
+function prog(p){
+  document.getElementById('loading-bar').style.width=Math.min(p,100)+'%';
+  document.getElementById('loading-pct').textContent=`Загружаем студию... ${Math.round(Math.min(p,100))}%`;
+}
+function done(){
+  prog(100);
+  setTimeout(()=>{
+    document.getElementById('loading').style.display='none';
+    document.getElementById('start').style.display='flex';
+  },350);
+}
+
+function fallbackScene(){
+  const mat=new THREE.MeshLambertMaterial({color:0x141414});
+  const box=(w,h,d,x,y,z)=>{
+    const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+    m.position.set(x,y,z); scene.add(m); colliders.push(m);
+  };
+  box(6,.2,11,0,FLOOR_Y-.1,0);
+  box(6,4,.2,0,FLOOR_Y+2,-5); box(6,4,.2,0,FLOOR_Y+2,5);
+  box(.2,4,11,-3,FLOOR_Y+2,0); box(.2,4,11,3,FLOOR_Y+2,0);
+}
+
+// ─────────────────────────────────────────────────────────
+// COMPUTER MARKER
+// ─────────────────────────────────────────────────────────
+function addMarker(){
+  const orb=new THREE.Mesh(
+    new THREE.SphereGeometry(.07,16,16),
+    new THREE.MeshBasicMaterial({color:0xFF3D00,depthTest:true,depthWrite:true})
+  );
+  orb.position.set(pcPos.x,FLOOR_Y+PLAYER_HEIGHT*.75+.1,pcPos.z);
+  orb.name='orb'; scene.add(orb);
+
+  const ring=new THREE.Mesh(
+    new THREE.RingGeometry(.14,.22,40),
+    new THREE.MeshBasicMaterial({color:0xFF3D00,side:THREE.DoubleSide,transparent:true,opacity:.4,depthTest:true,depthWrite:false})
+  );
+  ring.rotation.x=-Math.PI/2;
+  ring.position.set(pcPos.x,FLOOR_Y+.01,pcPos.z);
+  ring.name='ring'; scene.add(ring);
+}
+
+// ─────────────────────────────────────────────────────────
+// RPG TYPEWRITER
+// ─────────────────────────────────────────────────────────
+const RPG_LINES=['Добро пожаловать в BYN Records.','Здесь делают треки.','Найди компьютер — нажми чтобы продолжить.'];
+let rpgActive=false, rpgDone=false, rpgLineIdx=0, rpgCharIdx=0, rpgTimer=null;
+
+function startRPGOnce(){ if(!rpgDone && !rpgActive) setTimeout(startRPG, 700); }
+
+function startRPG(){
+  rpgActive=true; rpgLineIdx=0; rpgCharIdx=0;
+  document.getElementById('rpg-box').classList.add('visible');
+  document.getElementById('rpg-text').innerHTML='<span id="rpg-cursor"></span>';
+  typeChar();
+}
+
+function typeChar(){
+  const line=RPG_LINES[rpgLineIdx];
+  const allPrev=RPG_LINES.slice(0,rpgLineIdx).join('\n');
+  const cur=line.slice(0,rpgCharIdx);
+  document.getElementById('rpg-text').innerHTML=
+    (allPrev?(allPrev.replace(/\n/g,'<br>')+'<br>'):'') +
+    cur+'<span id="rpg-cursor"></span>';
+
+  rpgCharIdx++;
+  if(rpgCharIdx>line.length){
+    rpgLineIdx++;
+    rpgCharIdx=0;
+    if(rpgLineIdx>=RPG_LINES.length){ rpgTimer=setTimeout(closeRPG,2000); return; }
+    rpgTimer=setTimeout(typeChar,400);
+  } else {
+    const ch=line[rpgCharIdx-1];
+    rpgTimer=setTimeout(typeChar,(ch==='.'||ch===',')?160:36);
+  }
+}
+
+function skipRPG(){
+  clearTimeout(rpgTimer);
+  document.getElementById('rpg-text').innerHTML=RPG_LINES.join('<br>')+'<span id="rpg-cursor"></span>';
+  rpgTimer=setTimeout(closeRPG,1200);
+}
+
+function closeRPG(){
+  document.getElementById('rpg-box').classList.remove('visible');
+  rpgActive=false; rpgDone=true;
+  if(!IS_MOBILE) document.getElementById('canvas').requestPointerLock();
+  // Show tutorial on mobile
+  if(IS_MOBILE) {
+    const tut = document.getElementById('mob-tutorial');
+    tut.style.display = 'block';
+    tut.style.pointerEvents = 'auto';
+    tut.addEventListener('touchend', function hideTut(e) {
+      e.preventDefault();
+      tut.style.display = 'none';
+      tut.removeEventListener('touchend', hideTut);
+    }, { passive: false });
+    // Auto-hide after 12 seconds
+    setTimeout(() => { tut.style.display = 'none'; }, 12000);
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// THANK YOU
+// ─────────────────────────────────────────────────────────
+function showThankyou(){
+  if(!IS_MOBILE) document.exitPointerLock();
+  document.getElementById('thankyou').classList.add('visible');
+  document.getElementById('ty-btn').onclick=()=>{
+    window.open(INSTAGRAM,'_blank');
+    document.getElementById('thankyou').classList.remove('visible');
+    if(!IS_MOBILE) document.getElementById('canvas').requestPointerLock();
+  };
+}
+
+// ─────────────────────────────────────────────────────────
+// COLLISION
+// ─────────────────────────────────────────────────────────
+function resolveWalls(pos){
+  const origin=new THREE.Vector3(pos.x,pos.y-.45,pos.z);
+  RC_DIRS.forEach((dir,i)=>{
+    const rc=rcs[i]; rc.set(origin,dir);
+    const hits=rc.intersectObjects(colliders,true);
+    if(hits.length&&hits[0].distance<PLAYER_RADIUS){
+      const push=PLAYER_RADIUS-hits[0].distance;
+      pos.x-=dir.x*push; pos.z-=dir.z*push;
+    }
+  });
+  pos.x=Math.max(BOUNDS.minX+PLAYER_RADIUS,Math.min(BOUNDS.maxX-PLAYER_RADIUS,pos.x));
+  pos.z=Math.max(BOUNDS.minZ+PLAYER_RADIUS,Math.min(BOUNDS.maxZ-PLAYER_RADIUS,pos.z));
+}
+
+// ─────────────────────────────────────────────────────────
+// MOVEMENT + HEAD BOB
+// ─────────────────────────────────────────────────────────
+function updatePlayer(dt){
+  // Mobile joystick: continuous camera rotation each frame
+  if (IS_MOBILE && joy.active && joy.dx !== 0) {
+    const rotSpeed = 1.8; // radians per second per full deflection
+    euler.y -= (joy.dx / JOY_MAX) * rotSpeed * dt;
+    yawObj.rotation.y = euler.y;
+  }
+
+  const canMove = IS_MOBILE ? isActive : isLocked;
+  if(!canMove) return;
+
+  // Wish direction
+  const wish=new THREE.Vector2();
+
+  if(IS_MOBILE){
+    // Forward/backward from tap zones
+    if (mob.forward)  wish.y = -1;
+    if (mob.backward) wish.y =  1;
+    // No strafe on mobile in this scheme
+  } else {
+    if(keys['KeyW']||keys['ArrowUp'])    wish.y=-1;
+    if(keys['KeyS']||keys['ArrowDown'])  wish.y= 1;
+    if(keys['KeyA']||keys['ArrowLeft'])  wish.x=-1;
+    if(keys['KeyD']||keys['ArrowRight']) wish.x= 1;
+    const l=wish.length(); if(l>0) wish.divideScalar(l);
+  }
+
+  // Inertia
+  const len=wish.length();
+  if(len>0){
+    vel2.x+=(wish.x*MOVE_SPEED-vel2.x)*Math.min(1,ACCEL*dt);
+    vel2.y+=(wish.y*MOVE_SPEED-vel2.y)*Math.min(1,ACCEL*dt);
+  } else {
+    const br=Math.max(0,1-DECEL*dt);
+    vel2.x*=br; vel2.y*=br;
+    if(Math.abs(vel2.x)<.01)vel2.x=0;
+    if(Math.abs(vel2.y)<.01)vel2.y=0;
+  }
+
+  // World space
+  const sy=Math.sin(euler.y),cy=Math.cos(euler.y);
+  const wdx= cy*vel2.x+sy*vel2.y;
+  const wdz=-sy*vel2.x+cy*vel2.y;
+
+  const np=yawObj.position.clone();
+  np.x+=wdx*dt; np.z+=wdz*dt;
+  // np.y handled by gravity below
+  resolveWalls(np);
+
+  // ── JUMP / GRAVITY ──
+  jumpVel -= GRAVITY * dt;
+  np.y += jumpVel * dt;
+  const groundY = FLOOR_Y + PLAYER_HEIGHT;
+  if (np.y <= groundY) {
+    np.y = groundY;
+    jumpVel = 0;
+    isGrounded = true;
+  }
+
+  yawObj.position.copy(np);
+
+  // Head bob
+  const speed=vel2.length();
+  const targetBob=speed>.2?Math.min(speed/MOVE_SPEED,1):0;
+  bobLerp+=(targetBob-bobLerp)*Math.min(1,8*dt);
+  if(bobLerp>.001) bobT+=dt*BOB_FREQ*Math.PI*2;
+  pitchObj.position.y=Math.sin(bobT)*BOB_Y*bobLerp;
+  pitchObj.position.x=Math.cos(bobT*.5)*BOB_X*bobLerp;
+  camera.rotation.z=Math.cos(bobT*.5)*.008*bobLerp;
+}
+
+// ─────────────────────────────────────────────────────────
+// INTERACTION CHECK
+// ─────────────────────────────────────────────────────────
+function updateInteraction(){
+  const dx=yawObj.position.x-pcPos.x;
+  const dz=yawObj.position.z-pcPos.z;
+  nearPC=Math.sqrt(dx*dx+dz*dz)<INTERACT_DIST;
+
+  const promptEl=document.getElementById('prompt');
+  const btnEl=document.getElementById('btn-interact');
+
+  if(IS_MOBILE){
+    promptEl.classList.remove('visible');
+    btnEl.classList.toggle('active', nearPC);
+  } else {
+    promptEl.classList.toggle('visible', nearPC);
+  }
+
+  const t=Date.now()*.003;
+  const orb=scene.getObjectByName('orb');
+  const ring=scene.getObjectByName('ring');
+  if(orb){ orb.scale.setScalar(.88+Math.sin(t)*.18); orb.material.color.setHex(nearPC?0xffffff:0xFF3D00); }
+  if(ring){ ring.material.opacity=.22+Math.sin(t*.7)*.22; ring.scale.setScalar(1+Math.sin(t*.45)*.4); }
+}
+
+// ─────────────────────────────────────────────────────────
+// LOOP
+// ─────────────────────────────────────────────────────────
+function animate(){
+  requestAnimationFrame(animate);
+  const dt=Math.min(clock.getDelta(),.05);
+  updatePlayer(dt);
+  updateInteraction();
+  renderer.render(scene,camera);
+}
+
+function onResize(){
+  camera.aspect=innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+}
+
+init();
+animate();
+</script>
+</body>
+</html>
