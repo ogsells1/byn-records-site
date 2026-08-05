@@ -1,0 +1,111 @@
+/* ─── BYN RECORDS — юридические страницы ─── */
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+a { color:#EBEBEB; text-decoration:none; }
+
+::selection { background:rgba(255,61,0,.4); color:#EBEBEB; }
+::-moz-selection { background:rgba(255,61,0,.4); color:#EBEBEB; }
+
+body {
+  background:#060606;
+  color:#EBEBEB;
+  font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;
+  overflow-x:hidden;
+}
+
+/* грейн, как на главной */
+body::before {
+  content:'';
+  position:fixed; inset:0; z-index:9000; pointer-events:none;
+  opacity:.025;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:180px;
+}
+
+/* ─── NAV ─── */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:500;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 56px; height:60px;
+  background:rgba(6,6,6,.95);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+.nav-logo img { display:block; image-rendering:crisp-edges; image-rendering:-webkit-optimize-contrast; }
+.nav-back {
+  font-size:10px; font-weight:500; letter-spacing:3px; text-transform:uppercase;
+  color:rgba(235,235,235,.35); transition:color .2s;
+}
+.nav-back:hover { color:#FF3D00; }
+
+/* ─── СОДЕРЖИМОЕ ─── */
+main {
+  max-width:760px;
+  margin:0 auto;
+  padding:calc(60px + 96px) 56px 120px;
+}
+
+.eyebrow {
+  font-size:10px; font-weight:500; letter-spacing:4px; text-transform:uppercase;
+  color:#FF3D00; display:flex; align-items:center; gap:12px; margin-bottom:18px;
+}
+.eyebrow::before { content:''; display:block; width:24px; height:1px; background:#FF3D00; }
+
+h1 {
+  font-size:clamp(36px,6vw,64px); font-weight:900;
+  line-height:.95; letter-spacing:-2px; text-transform:uppercase;
+  color:#EBEBEB; margin-bottom:20px;
+}
+
+.updated {
+  font-size:11px; font-weight:300; letter-spacing:2px; text-transform:uppercase;
+  color:rgba(235,235,235,.3); margin-bottom:56px;
+  padding-bottom:24px; border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+h2 {
+  font-size:13px; font-weight:700; letter-spacing:3px; text-transform:uppercase;
+  color:#FF3D00; margin:48px 0 16px;
+}
+h2:first-of-type { margin-top:0; }
+
+p, li {
+  font-size:15px; font-weight:300; line-height:1.8;
+  color:rgba(235,235,235,.72);
+}
+p + p { margin-top:14px; }
+
+ol, ul { margin:14px 0 0 20px; }
+li { margin-bottom:12px; padding-left:6px; }
+li::marker { color:#FF3D00; }
+
+a.link { color:#FF3D00; border-bottom:1px solid rgba(255,61,0,.35); transition:border-color .2s; }
+a.link:hover { border-color:#FF3D00; }
+
+.note {
+  margin-top:56px; padding:24px 28px;
+  background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08);
+}
+.note p { font-size:14px; color:rgba(235,235,235,.6); }
+
+/* ─── FOOTER ─── */
+footer {
+  background:#020202; padding:20px 56px;
+  display:flex; align-items:center; justify-content:space-between;
+  border-top:1px solid rgba(255,255,255,.05);
+}
+.f-logo img { height:16px; display:block; opacity:.2; }
+.f-copy { font-size:10px; font-weight:300; color:rgba(235,235,235,.15); letter-spacing:1px; }
+.f-links { display:flex; gap:24px; }
+.f-links a { font-size:10px; font-weight:300; letter-spacing:1px; color:rgba(235,235,235,.25); transition:color .2s; }
+.f-links a:hover { color:#FF3D00; }
+
+/* ─── АДАПТИВ ─── */
+@media(max-width:980px) {
+  nav { padding:0 20px; height:56px; }
+  .nav-logo img { width:100px; height:auto; }
+  main { padding:calc(56px + 56px) 20px 80px; }
+  footer { flex-direction:column; gap:12px; text-align:center; padding:24px 20px; }
+}
