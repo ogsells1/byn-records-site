@@ -6,3 +6,6 @@
 
 # Netlify
 .netlify/
+
+# Local dev
+.claude/

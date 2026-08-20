@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Служебные страницы вне поиска
+Disallow: /byn_tour.html
+
+# Тяжёлые 3D-модели — не нужны в индексе
+Disallow: /*.glb$
+
+Sitemap: https://bynrecords.by/sitemap.xml
