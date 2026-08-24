@@ -77,7 +77,18 @@
     '#byn-chat .bc-send[disabled]{opacity:.45;cursor:default}',
     '#byn-chat .bc-send svg{width:18px;height:18px;display:block;margin-left:2px}',
     '#byn-chat .bc-note{padding:0 14px 10px;background:#060606;font-size:10px;letter-spacing:.04em;color:rgba(235,235,235,.35);text-align:center;flex:0 0 auto}',
-    '@media (max-width:640px){#byn-chat-fab{right:16px;bottom:16px}#byn-chat-panel{right:12px;left:12px;bottom:84px;width:auto;height:min(540px,calc(100dvh - 100px))}}'
+    '#byn-chat .bc-card{align-self:stretch;max-width:none;background:#181818;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}',
+    '#byn-chat .bc-card-t{font-size:13px;font-weight:700;color:#EBEBEB}',
+    '#byn-chat .bc-card input{width:100%;border:1px solid rgba(255,255,255,.15);border-radius:10px;background:#0F0F0F;color:#EBEBEB;font-size:14px;font-family:inherit;padding:9px 12px;outline:none;transition:border-color .2s}',
+    '#byn-chat .bc-card input:focus{border-color:rgba(255,61,0,.6)}',
+    '#byn-chat .bc-card input::placeholder{color:rgba(235,235,235,.35)}',
+    '#byn-chat .bc-card input.err{border-color:#FF3D00}',
+    '#byn-chat .bc-card button{border:0;border-radius:999px;background:#FF3D00;color:#EBEBEB;font-size:13px;font-weight:700;letter-spacing:.06em;padding:10px 16px;cursor:pointer;margin-top:2px;transition:background .2s}',
+    '#byn-chat .bc-card button:hover{background:#ff5a20}',
+    '#byn-chat .bc-card-note{font-size:10px;line-height:1.5;color:rgba(235,235,235,.4);text-align:center}',
+    // Мобильный: панель на весь экран (высоту под клавиатуру подгоняет
+    // visualViewport в fitPanel), кнопка-пузырь при открытом окне спрятана.
+    '@media (max-width:640px){#byn-chat-fab{right:16px;bottom:16px}#byn-chat.open #byn-chat-fab{display:none}#byn-chat-panel{top:0;right:0;bottom:auto;left:0;width:100%;max-width:none;height:100dvh;max-height:none;border-radius:0;border:0}#byn-chat .bc-note{padding-bottom:calc(10px + env(safe-area-inset-bottom))}}'
   ].join('\n');
 
   var style = document.createElement('style');
@@ -160,6 +171,67 @@
     addMsg('b', 'Спроси про цены, запись или адрес — отвечу сразу.');
   }
 
+  // ── Знакомство: имя обязательно, контакты — чтобы менеджер мог ответить ──
+  var contact = {};
+  try { contact = JSON.parse(lsGet('byn_chat_contact') || '{}'); } catch (e) {}
+  function hasContact() { return !!(contact && contact.name); }
+
+  function setChatEnabled(on) {
+    input.disabled = !on;
+    sendBtn.disabled = !on;
+    input.placeholder = on ? 'Напишите сообщение…' : 'Сначала заполните форму ↑';
+  }
+
+  var contactCard = null;
+  function showContactForm() {
+    if (contactCard) return;
+    contactCard = document.createElement('div');
+    contactCard.className = 'bc-card';
+    contactCard.innerHTML =
+      '<div class="bc-card-t">Давайте познакомимся 👋</div>' +
+      '<input data-k="name" type="text" placeholder="Имя *" maxlength="60" autocomplete="name">' +
+      '<input data-k="telegram" type="text" placeholder="Telegram (@ник)" maxlength="60">' +
+      '<input data-k="whatsapp" type="tel" placeholder="WhatsApp (номер)" maxlength="30">' +
+      '<input data-k="email" type="email" placeholder="Email" maxlength="80" autocomplete="email">' +
+      '<button type="button">Начать чат</button>' +
+      '<div class="bc-card-note">Обязательно только имя. Остальное — чтобы менеджер мог ответить вам напрямую</div>';
+    msgsEl.appendChild(contactCard);
+    scrollDown();
+
+    var nameEl = contactCard.querySelector('[data-k="name"]');
+    function submitContact() {
+      var c = {};
+      contactCard.querySelectorAll('input').forEach(function (el) {
+        var v = el.value.trim();
+        if (v) c[el.getAttribute('data-k')] = v.slice(0, 120);
+      });
+      if (!c.name) {
+        nameEl.classList.add('err');
+        nameEl.focus();
+        return;
+      }
+      contact = c;
+      lsSet('byn_chat_contact', JSON.stringify(contact));
+      contactCard.remove();
+      contactCard = null;
+      setChatEnabled(true);
+      addMsg('s', '✓ Приятно познакомиться, ' + contact.name + '! Напишите ваш вопрос');
+      if (window.innerWidth > 640) input.focus();
+    }
+    contactCard.querySelector('button').addEventListener('click', submitContact);
+    contactCard.querySelectorAll('input').forEach(function (el) {
+      el.addEventListener('keydown', function (e) {
+        if (e.isComposing) return;
+        if (e.key === 'Enter' || e.keyCode === 13) {
+          e.preventDefault();
+          e.stopPropagation();
+          submitContact();
+        }
+      });
+      el.addEventListener('input', function () { el.classList.remove('err'); });
+    });
+  }
+
   // Восстановить историю после перезагрузки страницы
   if (log.length) {
     log.forEach(function (m) {
@@ -169,14 +241,50 @@
   } else {
     greet();
   }
+  // Пока человек не представился, поле сообщения закрыто, в ленте — форма.
+  if (!hasContact()) {
+    setChatEnabled(false);
+    showContactForm();
+  }
 
   // ── Открытие/закрытие ──
   var opened = false;
+
+  function isMobile() { return window.innerWidth <= 640; }
+
+  // На телефоне панель занимает весь экран, а клавиатура съедает его часть.
+  // 100dvh про клавиатуру не знает, поэтому высоту (и сдвиг, если браузер
+  // прокрутил страницу под клавиатуру) берём из visualViewport.
+  function fitPanel() {
+    if (!opened || !isMobile() || !window.visualViewport) {
+      panel.style.height = '';
+      panel.style.transform = '';
+      return;
+    }
+    panel.style.height = window.visualViewport.height + 'px';
+    panel.style.transform = 'translateY(' + window.visualViewport.offsetTop + 'px)';
+    scrollDown();
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', fitPanel);
+    window.visualViewport.addEventListener('scroll', fitPanel);
+  }
+
+  var pageOverflow = '';
   function setOpen(open) {
     opened = open;
+    root.classList.toggle('open', open);
     panel.classList.toggle('open', open);
     fab.innerHTML = open ? ICON_CLOSE : ICON_CHAT;
     fab.setAttribute('aria-label', open ? 'Закрыть чат' : 'Открыть чат со студией');
+    // Фон под полноэкранным чатом не должен прокручиваться
+    if (open && isMobile()) {
+      pageOverflow = document.documentElement.style.overflow;
+      document.documentElement.style.overflow = 'hidden';
+    } else {
+      document.documentElement.style.overflow = pageOverflow;
+    }
+    fitPanel();
     if (open) {
       scrollDown();
       if (window.innerWidth > 640) input.focus();
@@ -189,14 +297,20 @@
     if (e.key === 'Escape' && opened) setOpen(false);
   });
 
+  // «Заново» начинает новый диалог, но человека мы уже знаем — форму не повторяем.
   root.querySelector('.bc-reset').addEventListener('click', function () {
     session = newSession();
     log = [];
     lsDel('byn_chat_log');
     lsDel('byn_chat_esc');
     msgsEl.innerHTML = '';
-    hideTyping();
+    typingEl = null;
+    contactCard = null;
     greet();
+    if (!hasContact()) {
+      setChatEnabled(false);
+      showContactForm();
+    }
   });
 
   // ── Отправка ──
@@ -257,7 +371,8 @@
     fetch(ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ session: session, text: text }),
+      // Контакты шлём с каждым сообщением: серверу так проще ничего не потерять
+      body: JSON.stringify({ session: session, text: text, contact: hasContact() ? contact : undefined }),
       signal: ctrl ? ctrl.signal : undefined
     })
       .then(function (r) {
@@ -272,7 +387,13 @@
             setTimeout(function () { addMsg('b', m); }, i * 500);
           });
         } else if (data.action === 'escalate') {
-          showEscalation();
+          // Бот отвечает и когда зовёт менеджера — сначала его сообщения,
+          // потом блок «передаю менеджеру» с кнопками.
+          var ms = (data.messages && data.messages.length) ? data.messages : [];
+          ms.forEach(function (m, i) {
+            setTimeout(function () { addMsg('b', m); }, i * 500);
+          });
+          setTimeout(showEscalation, ms.length * 500);
         } else {
           showError();
         }
