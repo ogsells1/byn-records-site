@@ -7,7 +7,7 @@
 // Пока ENDPOINT не заполнен реальным адресом, виджет не показывается вовсе —
 // сайт можно деплоить, ничего не сломается.
 (function () {
-  var ENDPOINT = 'https://ЗАМЕНИ-НА-АДРЕС-БОТА/chat';
+  var ENDPOINT = 'https://mac-mini-1.tailbf81bd.ts.net/chat';
   try {
     // Для локальной проверки: localStorage.setItem('byn_chat_endpoint', 'http://localhost:3000/chat')
     ENDPOINT = localStorage.getItem('byn_chat_endpoint') || ENDPOINT;
