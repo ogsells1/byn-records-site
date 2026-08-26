@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="robots" content="noindex, nofollow">
-<title>BYN Records — Студия изнутри</title>
+<title>BYN Records – Студия изнутри</title>
 <style>
 /* Fix for iframe: prevent fixed elements from bleeding outside on mobile */
 html, body { overflow: hidden; position: relative; width: 100%; height: 100%; }
@@ -90,7 +90,7 @@ body::before {
 }
 
 /* ── MOBILE CONTROLS ── */
-/* Fixed look joystick — bottom left corner */
+/* Fixed look joystick – bottom left corner */
 #joystick-zone {
   position:fixed; left:16px; bottom:16px;
   width:130px; height:130px;
@@ -108,7 +108,7 @@ body::before {
   pointer-events:none;
 }
 
-/* Interact button — right side */
+/* Interact button – right side */
 #btn-interact {
   position:fixed; right:28px; bottom:140px;
   width:70px; height:70px; border-radius:50%;
@@ -153,7 +153,7 @@ body::before {
   <div id="start-logo">BYN<span>RECORDS</span></div>
   <div id="start-sub">Студия звукозаписи · Минск</div>
   <button id="start-btn">Войти в студию →</button>
-  <div id="start-hint" id="start-hint-desktop">WASD — движение &nbsp;|&nbsp; мышь — взгляд &nbsp;|&nbsp; E — взаимодействие</div>
+  <div id="start-hint" id="start-hint-desktop">WASD – движение &nbsp;|&nbsp; мышь – взгляд &nbsp;|&nbsp; E – взаимодействие</div>
 </div>
 
 <!-- Mobile back button -->
@@ -168,7 +168,7 @@ body::before {
 <canvas id="canvas"></canvas>
 <div id="crosshair"></div>
 <div id="prompt">[ E ] Продолжить</div>
-<div id="controls">WASD · мышь · E — взаимодействие · ESC — пауза</div>
+<div id="controls">WASD · мышь · E – взаимодействие · ESC – пауза</div>
 
 <!-- Resume hint shown after ESC -->
 <div id="resume-hint" style="
@@ -390,7 +390,7 @@ function init() {
 function setupUI() {
   const hint = document.getElementById('start-hint');
   if (IS_MOBILE) {
-    hint.textContent = 'Верх экрана — вперёд · Низ — назад · Джойстик — поворот · 2× тап — прыжок';
+    hint.textContent = 'Верх экрана – вперёд · Низ – назад · Джойстик – поворот · 2× тап – прыжок';
     document.getElementById('mobile-back').style.display = 'block';
     // Back button: use referrer or fallback to parent folder
     const backBtn = document.getElementById('back-btn');
@@ -677,7 +677,7 @@ function addMarker(){
 // ─────────────────────────────────────────────────────────
 // RPG TYPEWRITER
 // ─────────────────────────────────────────────────────────
-const RPG_LINES=['Добро пожаловать в BYN Records.','Здесь делают треки.','Найди компьютер — нажми чтобы продолжить.'];
+const RPG_LINES=['Добро пожаловать в BYN Records.','Здесь делают треки.','Найди компьютер – нажми чтобы продолжить.'];
 let rpgActive=false, rpgDone=false, rpgLineIdx=0, rpgCharIdx=0, rpgTimer=null;
 
 function startRPGOnce(){ if(!rpgDone && !rpgActive) setTimeout(startRPG, 700); }

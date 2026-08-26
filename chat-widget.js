@@ -1,10 +1,10 @@
 // Онлайн-чат BYN RECORDS: плавающая кнопка + окно диалога.
 // Отвечает тот же бот, что в Instagram Direct (ig-agent на студийном mac mini):
 // виджет шлёт POST {session, text} на ENDPOINT, в ответ приходит
-// {action:"reply", messages:[...]} или {action:"escalate"} — тогда предлагаем
+// {action:"reply", messages:[...]} или {action:"escalate"} – тогда предлагаем
 // клиенту продолжить в Telegram/Instagram, дальше диалог ведёт живой менеджер.
 //
-// Пока ENDPOINT не заполнен реальным адресом, виджет не показывается вовсе —
+// Пока ENDPOINT не заполнен реальным адресом, виджет не показывается вовсе –
 // сайт можно деплоить, ничего не сломается.
 (function () {
   var ENDPOINT = 'https://mac-mini-1.tailbf81bd.ts.net/chat';
@@ -168,10 +168,10 @@
 
   function greet() {
     addMsg('b', 'Привет! Это чат студии BYN RECORDS 👋');
-    addMsg('b', 'Спроси про цены, запись или адрес — отвечу сразу.');
+    addMsg('b', 'Спроси про цены, запись или адрес – отвечу сразу.');
   }
 
-  // ── Знакомство: имя обязательно, контакты — чтобы менеджер мог ответить ──
+  // ── Знакомство: имя обязательно, контакты – чтобы менеджер мог ответить ──
   var contact = {};
   try { contact = JSON.parse(lsGet('byn_chat_contact') || '{}'); } catch (e) {}
   function hasContact() { return !!(contact && contact.name); }
@@ -194,7 +194,7 @@
       '<input data-k="whatsapp" type="tel" placeholder="WhatsApp (номер)" maxlength="30">' +
       '<input data-k="email" type="email" placeholder="Email" maxlength="80" autocomplete="email">' +
       '<button type="button">Начать чат</button>' +
-      '<div class="bc-card-note">Обязательно только имя. Остальное — чтобы менеджер мог ответить вам напрямую</div>';
+      '<div class="bc-card-note">Обязательно только имя. Остальное – чтобы менеджер мог ответить вам напрямую</div>';
     msgsEl.appendChild(contactCard);
     scrollDown();
 
@@ -241,7 +241,7 @@
   } else {
     greet();
   }
-  // Пока человек не представился, поле сообщения закрыто, в ленте — форма.
+  // Пока человек не представился, поле сообщения закрыто, в ленте – форма.
   if (!hasContact()) {
     setChatEnabled(false);
     showContactForm();
@@ -297,7 +297,7 @@
     if (e.key === 'Escape' && opened) setOpen(false);
   });
 
-  // «Заново» начинает новый диалог, но человека мы уже знаем — форму не повторяем.
+  // «Заново» начинает новый диалог, но человека мы уже знаем – форму не повторяем.
   root.querySelector('.bc-reset').addEventListener('click', function () {
     session = newSession();
     log = [];
@@ -320,12 +320,12 @@
 
   function showEscalation() {
     if (escalated()) {
-      // Менеджер уже в курсе — тихо подтверждаем, что дописанное ему передано
+      // Менеджер уже в курсе – тихо подтверждаем, что дописанное ему передано
       addMsg('s', '✓ Передано менеджеру');
       return;
     }
     lsSet('byn_chat_esc', '1');
-    addMsg('b', 'Передаю менеджеру — ответит живой человек 🙌');
+    addMsg('b', 'Передаю менеджеру – ответит живой человек 🙌');
     addMsg('s', 'Быстрее всего продолжить в мессенджере:');
     addHandoffLinks();
     track('chat_escalated');
@@ -387,7 +387,7 @@
             setTimeout(function () { addMsg('b', m); }, i * 500);
           });
         } else if (data.action === 'escalate') {
-          // Бот отвечает и когда зовёт менеджера — сначала его сообщения,
+          // Бот отвечает и когда зовёт менеджера – сначала его сообщения,
           // потом блок «передаю менеджеру» с кнопками.
           var ms = (data.messages && data.messages.length) ? data.messages : [];
           ms.forEach(function (m, i) {
