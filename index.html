@@ -102,23 +102,30 @@
       },
       {
         "@type": "Offer",
-        "name": "Демки №2–3",
-        "description": "4 часа записи (2 сессии) + сведение лучшей демки на месте",
+        "name": "Starter",
+        "description": "6 часов записи (три демки) + 1 сведение на месте бесплатно",
         "price": "200",
         "priceCurrency": "BYN"
       },
       {
         "@type": "Offer",
-        "name": "Релизный месяц",
-        "description": "Выбор лучшей из трёх демок, сведение FULL + мастеринг, дистрибуция на стриминги, обложка и сниппет",
-        "price": "220",
+        "name": "Starter+",
+        "description": "6 часов записи (три демки) + сведение FULL лучшей + дистрибуция — релиз на стримингах",
+        "price": "350",
         "priceCurrency": "BYN"
       },
       {
         "@type": "Offer",
-        "name": "Резиденция BYN",
-        "description": "Трек в месяц: 3 демки, релиз, выступление на клабшоу. Контракт на 3 месяца, набор по отбору",
+        "name": "Playa",
+        "description": "6 часов записи + сведение FULL + дистрибуция + консультация/контент-план. Уровень открывается после прохождения Starter+",
         "price": "450",
+        "priceCurrency": "BYN"
+      },
+      {
+        "@type": "Offer",
+        "name": "Playa+",
+        "description": "6 часов записи + сведение FULL + продакшен трека + полное сопровождение релиза. Уровень открывается после прохождения Starter+",
+        "price": "650",
         "priceCurrency": "BYN"
       },
       {
@@ -439,6 +446,22 @@ nav {
 .tariff.hot .t-item { color:rgba(255,255,255,.75); }
 .tariff.hot .t-item::before { color:rgba(255,255,255,.6); }
 .tariff.hot .t-price { border-bottom-color:rgba(255,255,255,.2); }
+
+.tariff.locked .t-name, .tariff.locked .t-price, .tariff.locked .t-items { opacity:.35; filter:grayscale(.5); }
+.tariff.locked:hover { transform:none; border-color:rgba(255,255,255,.08); background:rgba(255,255,255,.03); }
+.t-lock {
+  position:absolute; inset:0; z-index:3;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+  background:rgba(6,6,6,.55);
+  backdrop-filter:blur(2.5px); -webkit-backdrop-filter:blur(2.5px);
+  padding:24px; text-align:center;
+}
+.t-lock svg { width:30px; height:30px; opacity:.9; filter:drop-shadow(0 0 12px rgba(255,61,0,.4)); }
+.t-lock span {
+  font-size:10px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase;
+  color:rgba(235,235,235,.85); line-height:1.8; max-width:230px;
+}
+.t-lock span b { color:#FF3D00; font-weight:700; }
 
 .t-cta { margin-top:40px; display:flex; justify-content:center; position:relative; z-index:2; }
 
@@ -1130,47 +1153,55 @@ document.addEventListener('keydown', e => {
   <div style="position:relative;z-index:2">
     <p class="eyebrow sr">06 — Путь к релизу</p>
     <h2 class="sec-h sr" aria-label="Путь артиста в BYN Records: три демки, один релиз">Три демки.<br><span style="-webkit-text-stroke:2px #EBEBEB;color:transparent">Один релиз.</span></h2>
-    <p class="sr" style="font-size:clamp(15px,1.5vw,19px);font-weight:300;line-height:1.7;color:rgba(235,235,235,.55);max-width:640px;margin:0 0 48px;border-left:2px solid #FF3D00;padding-left:20px;">Ты записываешь три демки — мы вместе выбираем сильнейшую и доводим её до релиза на стримингах. Каждый шаг оплачивается отдельно: сойти можно после любого.</p>
+    <p class="sr" style="font-size:clamp(15px,1.5vw,19px);font-weight:300;line-height:1.7;color:rgba(235,235,235,.55);max-width:640px;margin:0 0 48px;border-left:2px solid #FF3D00;padding-left:20px;">Ты записываешь три демки — мы вместе выбираем сильнейшую и доводим её до релиза на стримингах. Уровни Playa открываются тем, кто прошёл путь до конца.</p>
     <div class="tariffs-grid">
       <div class="tariff sr">
-        <div class="t-name">Шаг 1 · Первая демка</div>
-        <div class="t-price">70<sub> BYN</sub></div>
-        <div class="t-items">
-          <p class="t-item">2 часа записи со звукорежиссером</p>
-          <p class="t-item">+ сведение на месте</p>
-          <p class="t-item">Готовая демка в день записи</p>
-        </div>
-      </div>
-      <div class="tariff sr">
-        <div class="t-name">Шаг 2 · Демки №2–3</div>
+        <div class="t-name">Starter</div>
         <div class="t-price">200<sub> BYN</sub></div>
         <div class="t-items">
-          <p class="t-item">4 часа записи (2 сессии)</p>
-          <p class="t-item">+ сведение лучшей на месте</p>
-          <p class="t-item">Итог: три демки на руках</p>
+          <p class="t-item">6 часов записи — три демки</p>
+          <p class="t-item">+ 1 сведение на месте бесплатно</p>
         </div>
       </div>
       <div class="tariff hot sr">
-        <div class="t-badge">Финал пути</div>
-        <div class="t-name">Шаг 3 · Релизный месяц</div>
-        <div class="t-price">220<sub> BYN</sub></div>
+        <div class="t-badge">Топ выбор</div>
+        <div class="t-name">Starter+</div>
+        <div class="t-price">350<sub> BYN</sub></div>
         <div class="t-items">
-          <p class="t-item">Выбираем сильнейшую из трёх демок</p>
-          <p class="t-item">+ сведение FULL и мастеринг</p>
-          <p class="t-item">+ дистрибьюция на все стриминги</p>
-          <p class="t-item">+ обложка и сниппет</p>
+          <p class="t-item">6 часов записи — три демки</p>
+          <p class="t-item">+ 1 сведение FULL лучшей</p>
+          <p class="t-item">+ дистрибьюция — релиз на стримингах</p>
         </div>
       </div>
-      <div class="tariff sr">
-        <div class="t-badge" style="background:transparent;border:1px solid rgba(255,61,0,.5);color:#FF3D00;">Набор: 5 мест</div>
-        <div class="t-name">Резиденция BYN</div>
-        <div class="t-price">от 450<sub> BYN/мес</sub></div>
+      <div class="tariff locked sr" aria-label="Playa — уровень откроется после прохождения Starter+">
+        <div class="t-name">Playa</div>
+        <div class="t-price">450<sub> BYN</sub></div>
         <div class="t-items">
-          <p class="t-item">Трек в месяц: 3 демки → релиз</p>
-          <p class="t-item">+ выступление на клабшоу студии</p>
-          <p class="t-item">+ приоритетные слоты и сопровождение</p>
-          <p class="t-item">Контракт на 3 месяца, по отбору</p>
-          <p class="t-item">Заявка — в директ со словом «резиденция»</p>
+          <p class="t-item">6 часов записи</p>
+          <p class="t-item">+ 1 сведение FULL</p>
+          <p class="t-item">+ дистрибьюция</p>
+          <p class="t-item">+ консультация / контент-план</p>
+        </div>
+        <div class="t-lock" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#FF3D00" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10.5" width="16" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/><circle cx="12" cy="15.5" r="1.4" fill="#FF3D00" stroke="none"/></svg>
+          <span>Необходимо пройти уровень <b>Starter+</b></span>
+        </div>
+      </div>
+      <div class="tariff locked sr" aria-label="Playa+ — уровень откроется после прохождения Starter+">
+        <div class="t-name">Playa+</div>
+        <div class="t-price">от 650<sub> BYN</sub></div>
+        <div class="t-items">
+          <p class="t-item">6 часов записи</p>
+          <p class="t-item">+ 1 сведение FULL</p>
+          <p class="t-item">+ продакшен 1 трека</p>
+          <p class="t-item">+ дистрибьюция 1 трека</p>
+          <p class="t-item">+ полное сопровождение релиза (контент-план, 2 консультации)</p>
+          <p class="t-item">+ медиапродукты (сниппет, обложка)</p>
+          <p class="t-item">+ участие в онлайн-ивентах</p>
+        </div>
+        <div class="t-lock" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#FF3D00" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10.5" width="16" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/><circle cx="12" cy="15.5" r="1.4" fill="#FF3D00" stroke="none"/></svg>
+          <span>Необходимо пройти уровень <b>Starter+</b></span>
         </div>
       </div>
     </div>
