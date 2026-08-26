@@ -447,14 +447,16 @@ nav {
 .tariff.hot .t-item::before { color:rgba(255,255,255,.6); }
 .tariff.hot .t-price { border-bottom-color:rgba(255,255,255,.2); }
 
-.tariff.locked .t-name, .tariff.locked .t-price, .tariff.locked .t-items { opacity:.72; filter:grayscale(.35); }
+.tariff.locked .t-name, .tariff.locked .t-price, .tariff.locked .t-items { opacity:.85; }
 .tariff.locked:hover { transform:none; border-color:rgba(255,255,255,.08); background:rgba(255,255,255,.03); }
 .t-lock {
-  margin-top:22px; padding-top:20px;
-  border-top:1px dashed rgba(255,61,0,.35);
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
-  text-align:center;
+  position:absolute; inset:0; z-index:3;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+  background:rgba(6,6,6,.15);
+  backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px);
+  padding:24px; text-align:center;
 }
+.t-lock span { text-shadow:0 1px 10px rgba(6,6,6,.95), 0 0 24px rgba(6,6,6,.85); }
 .t-lock svg { width:30px; height:30px; opacity:.9; filter:drop-shadow(0 0 12px rgba(255,61,0,.4)); }
 .t-lock span {
   font-size:10px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase;
