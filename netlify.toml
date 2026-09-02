@@ -1,3 +1,10 @@
 [build]
   publish = "."
   command = ""
+
+# Служебные файлы репозитория не отдаём наружу
+[[redirects]]
+  from = "/CLAUDE.md"
+  to = "/"
+  status = 404
+  force = true
