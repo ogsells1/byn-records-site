@@ -157,6 +157,66 @@
   "publisher": { "@id": "https://bynrecords.by/#studio" }
 }
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "@id": "https://bynrecords.by/#faq",
+  "isPartOf": {
+    "@id": "https://bynrecords.by/#webpage"
+  },
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Сколько стоит записать трек?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Первая демка – 70 BYN: два часа со звукорежиссёром и сведение на месте. Дальше Starter – 200 BYN, это шесть часов и три демки. Отдельно: запись от 35 BYN/час, удалённое сведение от 120 BYN, бит от 150 BYN."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Как записаться?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Напиши в директ @byn.records или в Telegram: день, примерное время и на чём пишешь – свой ноут или наш Mac. Подтвердим слот и скинем адрес."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Где вы находитесь?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Минск, Старовиленская 100, территория завода МЭФЗ. Звукорежиссёр встречает на центральном входе. На ночные сессии зайти на завод нужно до 00:00."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Нужен свой бит?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Нет. Приходи со своим или напишем под тебя – авторский бит от 150 BYN, с эксклюзивными правами, по брифу или с нуля."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Можно отдать трек только на сведение?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Да. Удалённое сведение от 120 BYN: присылаешь стемы, получаешь результат. Одна правка входит в стоимость."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Можно писать самому, без звукорежиссёра?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Да. Ночь на студии 23:00–06:00: 150 BYN со своим ноутбуком, 200 BYN на студийном Mac. Абонемент Self Made – 160 BYN за 10 часов, можно разбить на несколько сессий."
+      }
+    }
+  ]
+}
+</script>
 <style>
 
 /* ─── RESET ─── */
@@ -554,6 +614,59 @@ nav {
 }
 @media(max-width:580px) {
   .eq-grid { grid-template-columns:1fr; }
+}
+
+/* ════════════════════════
+   FAQ
+════════════════════════ */
+#faq { padding:120px 56px; background:#0F0F0F; position:relative; overflow:hidden; }
+.faq-glow {
+  position:absolute; top:-20%; right:-10%; width:50%; height:60%;
+  background:radial-gradient(ellipse, rgba(255,61,0,.06), transparent 65%);
+  animation:glow 9s ease-in-out infinite alternate; pointer-events:none;
+}
+.faq-wrap {
+  position:relative; z-index:2; max-width:1200px; margin:0 auto;
+  display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:start;
+}
+.faq-lead { font-size:clamp(16px,1.5vw,19px); font-weight:300; line-height:1.75; color:rgba(235,235,235,.72); }
+.faq-lead strong { color:#EBEBEB; font-weight:700; }
+.faq-lead b { color:#FF3D00; font-weight:700; }
+
+.faq-list { display:flex; flex-direction:column; }
+.faq-item { border-top:1px solid rgba(255,255,255,.12); }
+.faq-item:last-child { border-bottom:1px solid rgba(255,255,255,.12); }
+.faq-q {
+  display:flex; justify-content:space-between; align-items:center; gap:14px;
+  padding:22px 0; cursor:pointer; list-style:none;
+  font-size:14px; font-weight:700; text-transform:uppercase; letter-spacing:.5px;
+  color:#EBEBEB; line-height:1.35;
+  transition:color .2s;
+}
+.faq-q::-webkit-details-marker { display:none; }
+.faq-t { transition:transform .25s cubic-bezier(.16,1,.3,1); }
+.faq-item:hover .faq-q { color:#FF3D00; }
+.faq-item:hover .faq-t { transform:translateX(10px); }
+@media(prefers-reduced-motion:reduce) { .faq-t { transition:none; } }
+.faq-q:focus-visible { outline:2px solid #FF3D00; outline-offset:3px; }
+.faq-plus {
+  font-size:18px; font-weight:300; color:rgba(235,235,235,.3); flex-shrink:0;
+  transition:transform .3s, color .3s;
+}
+.faq-item[open] .faq-q { color:#FF3D00; }
+.faq-item[open] .faq-plus { transform:rotate(45deg); color:#FF3D00; }
+.faq-a {
+  font-size:13px; font-weight:300; line-height:1.95; color:rgba(235,235,235,.62);
+  border-left:2px solid #FF3D00; padding:0 0 20px 16px; margin-bottom:2px;
+  animation:faqIn .3s cubic-bezier(.16,1,.3,1);
+}
+.faq-a b { color:#EBEBEB; font-weight:700; }
+@keyframes faqIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }
+@media(prefers-reduced-motion:reduce) { .faq-a { animation:none; } }
+
+@media(max-width:980px) {
+  #faq { padding:80px 20px; }
+  .faq-wrap { grid-template-columns:1fr; gap:44px; }
 }
 
 /* ════════════════════════
@@ -1268,6 +1381,43 @@ document.addEventListener('keydown', e => {
       #music > div > div:last-child { grid-template-columns:1fr !important; }
     }
   </style>
+</section>
+
+<!-- FAQ -->
+<section id="faq" aria-label="Частые вопросы о записи в студии BYN Records">
+  <div class="faq-glow"></div>
+  <div class="faq-wrap">
+    <div class="sr">
+      <h2 class="sec-h">Частые<br><span class="outline-text">вопросы</span></h2>
+      <p class="faq-lead">BYN Records – <strong>студия звукозаписи полного цикла в Минске</strong>, Старовиленская 100. Записываем вокал и инструменты, сводим, мастерим и выпускаем треки на стриминги. Начать можно с первой демки за <b>70 BYN</b>: два часа со звукорежиссёром и сведение на месте – уходишь с готовым треком в тот же день. Ночь на студии – от <b>150 BYN</b>.</p>
+    </div>
+    <div class="faq-list sr">
+      <details class="faq-item">
+        <summary class="faq-q"><span class="faq-t">Сколько стоит записать трек?</span><span class="faq-plus" aria-hidden="true">+</span></summary>
+        <div class="faq-a">Первая демка – <b>70 BYN</b>: два часа со звукорежиссёром и сведение на месте. Дальше Starter – <b>200 BYN</b>, это шесть часов и три демки. Отдельно: запись от <b>35 BYN/час</b>, удалённое сведение от <b>120 BYN</b>, бит от <b>150 BYN</b>.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q"><span class="faq-t">Как записаться?</span><span class="faq-plus" aria-hidden="true">+</span></summary>
+        <div class="faq-a">Напиши в директ <b>@byn.records</b> или в Telegram: день, примерное время и на чём пишешь – свой ноут или наш Mac. Подтвердим слот и скинем адрес.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q"><span class="faq-t">Где вы находитесь?</span><span class="faq-plus" aria-hidden="true">+</span></summary>
+        <div class="faq-a">Минск, <b>Старовиленская 100</b>, территория завода МЭФЗ. Звукорежиссёр встречает на центральном входе. На ночные сессии зайти на завод нужно до 00:00.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q"><span class="faq-t">Нужен свой бит?</span><span class="faq-plus" aria-hidden="true">+</span></summary>
+        <div class="faq-a">Нет. Приходи со своим или напишем под тебя – авторский бит от <b>150 BYN</b>, с эксклюзивными правами, по брифу или с нуля.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q"><span class="faq-t">Можно отдать трек только на сведение?</span><span class="faq-plus" aria-hidden="true">+</span></summary>
+        <div class="faq-a">Да. Удалённое сведение от <b>120 BYN</b>: присылаешь стемы, получаешь результат. Одна правка входит в стоимость.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q"><span class="faq-t">Можно писать самому, без звукорежиссёра?</span><span class="faq-plus" aria-hidden="true">+</span></summary>
+        <div class="faq-a">Да. Ночь на студии 23:00–06:00: <b>150 BYN</b> со своим ноутбуком, <b>200 BYN</b> на студийном Mac. Абонемент Self Made – <b>160 BYN</b> за 10 часов, можно разбить на несколько сессий.</div>
+      </details>
+    </div>
+  </div>
 </section>
 
 <!-- SOCIAL -->
